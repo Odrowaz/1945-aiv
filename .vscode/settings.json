@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "raylib.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "math.h": "c",
+        "types.h": "c",
+        "string.h": "c",
+        "xutility": "c"
+    }
+}
