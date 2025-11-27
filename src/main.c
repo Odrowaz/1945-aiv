@@ -1,80 +1,112 @@
+#include "aiv_vector.h"
+#include "assets_manager.h"
+#include "ecs.h"
+#include "raylib.h"
+#include "timers.h"
+#include "types.h"
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "raylib.h"
-#include "assets_manager.h"
+#define ISLAND_1 (Rectangle){103, 499, 64, 64}
+#define ISLAND_2 (Rectangle){103 + 64, 499, 64, 64}
+#define ISLAND_3 (Rectangle){103 + (64 * 2), 499, 64, 64}
 
-int a = 0;
+#define WATER_TILE_1 (Rectangle){268, 367, 32, 32}
+#define WATER_TILE_2 (Rectangle){268 + 33, 367, 32, 32}
+#define TARGET_FRAMERATE 60
+#define SCREEN_WIDTH (640 << 1)
+#define SCREEN_HEIGHT (480 << 1)
+#define TILE_SIZE (32 << 1)
+
+void LoadAllAssets() {
+  const char *app_dir = GetApplicationDirectory();
+  ChangeDirectory(app_dir);
+  ChangeDirectory("..");
+
+  Image atlas = LoadImage("assets/1945_atlas.bmp");
+
+  AddNewAsset("GameAtlas", "assets/1945_atlas.bmp", TEXTURE);
+
+  AddNewAsset("GameIcon", "assets/ui/life.png", IMAGE);
+}
+
+void DrawBg(world_t *world) {
+  world_t search = GetEntitiesWithTypes(world, STR(ScrollingBG), STR(Timer));
+
+  for (int i = 0; i < search.entities.count; i++) {
+
+    world_t entity_components =
+        GetComponentsFromEntity(world, search.entities.items[i]);
+
+    Timer *timer = GetComponentOfType(&entity_components, Timer)->item;
+    ScrollingBG *bg = GetComponentOfType(&entity_components, ScrollingBG)->item;
+
+    bg->offset_y += 2;
+    bg->offset_y %= SCREEN_HEIGHT;
+
+    int frameIndex = GetAnimationFrame(timer, 2, 1.0 / 1);
+    for (int y = 0; y < SCREEN_HEIGHT + TILE_SIZE; y += TILE_SIZE) {
+      int temp_y = (y + bg->offset_y);
+      if (temp_y > SCREEN_HEIGHT) {
+        temp_y = -TILE_SIZE + (temp_y - SCREEN_HEIGHT);
+      }
+      for (int x = 0; x < SCREEN_WIDTH; x += TILE_SIZE) {
+        DrawTexturePro(*bg->atlas,
+                       frameIndex == 1 ? WATER_TILE_1 : WATER_TILE_2,
+                       (Rectangle){x, temp_y, TILE_SIZE, TILE_SIZE},
+                       (Vector2){0, 0}, 0, WHITE);
+      }
+    }
+  }
+}
+
+void DrawIslandBg(ScrollingBG *bg, Timer *timer) {
+
+  DrawTexturePro(*bg->atlas, ISLAND_1,
+                 (Rectangle){10, 40, TILE_SIZE << 2, TILE_SIZE << 2},
+                 (Vector2){0, 0}, 0, WHITE);
+}
 
 int main(void) {
-    const int screenWidth = 800;
-    const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+  char title[100];
 
-    SetTargetFPS(60);
+  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Loading...");
+  SetTargetFPS(TARGET_FRAMERATE);
+  LoadAllAssets();
 
-    char title[100];
+  SetWindowIcon(*GetAssetFromName("GameIcon", Image));
+  InitAudioDevice();
 
-    const char* app_dir = GetApplicationDirectory();
-    ChangeDirectory(app_dir);
-    ChangeDirectory("..");
+  world_t world = CreateWorld();
 
-    AddNewAsset("GameIcon", "assets/ui/life.png", IMAGE);
-    AddNewAsset("PlayerSprite", "assets/player/myplane_strip3.png", TEXTURE);
+  entity_t bg = CreateEntity(&world);
 
-    Image *img = (Image*)GetAssetFromName("GameIcon");
-    Texture2D *tex = (Texture2D*)GetAssetFromName("PlayerSprite");
+  ScrollingBG scrollBg = {0, GetAssetFromName("GameAtlas", Texture2D)};
+  Timer bgTimer = CreateNewTimer();
 
-    SetWindowIcon(*img);
+  AddComponent(&world, &bgTimer, Timer, &bg);
+  AddComponent(&world, &scrollBg, ScrollingBG, &bg);
 
-    // InitAudioDevice();
+  RegisterSystem(DrawBg, "DRAW");
 
-    // Sound sound = LoadSound();
-    // Music music = LoadMusicStream();
+  while (!WindowShouldClose()) {
+    float delta_time = GetFrameTime();
+    int fps = GetFPS();
+    sprintf(title, "1945 (Delta: %.4f - FPS: %d)", delta_time, fps);
+    SetWindowTitle(title);
 
-    // PlaySound()
-    // PlayMusicStream()
-
-    while (!WindowShouldClose()) {
-        float delta_time = GetFrameTime();
-        int fps = GetFPS();
-        sprintf(title, "Delta: %.4f - FPS: %d", delta_time, fps);
-        SetWindowTitle(title);
-
-        static float time = 0;
-        time += delta_time;
-        unsigned char r = (unsigned char)((sin(time) * 0.5f + 0.5f) * 255);
-
-        Color clear = (Color){r, 0, 0, 255};
-
-        Vector2 mouse_po = GetMousePosition();
-
-        Color color = MAGENTA;
-
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-            color = GREEN;
-        }
-
-        BeginDrawing();
-        {
-            ClearBackground(clear);
-
-            DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
-            DrawLine(100, 100, 700, 600, BLUE);
-            DrawLineEx((Vector2){100, 110}, (Vector2){700, 1100}, 4, LIME);
-            DrawPoly((Vector2){300, 300}, 5, 10, 0, YELLOW);
-
-            DrawTextureV(*tex, mouse_po, WHITE);
-            // DrawCircleV(mouse_po, 20, color);
-            // DrawRectangle()
-        }
-        EndDrawing();
+    BeginDrawing();
+    {
+      ClearBackground(BLANK);
+      RunSystems(&world, "DRAW");
+      // DrawBg(&bg, &bgTimer);
+      // DrawIslandBg(&bg, &bgTimer);
     }
+    EndDrawing();
+  }
 
-    FreeAssets();
-    CloseWindow();
-    return 0;
+  FreeAssets();
+  CloseWindow();
+  return 0;
 }

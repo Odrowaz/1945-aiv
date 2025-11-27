@@ -1,9 +1,10 @@
+#include <corecrt_search.h>
 #include <stdlib.h>
 #include <types.h>
 
 #include "raylib.h"
 
-static GameAsset* first;
+static GameAsset* first = NULL;
 
 static void* __allocate(const bool result, const char* type, const char* path, const void* src, int size) {
     if (!result) {
@@ -14,6 +15,17 @@ static void* __allocate(const bool result, const char* type, const char* path, c
     memcpy_s(asset, size, src, size);
 
     return asset;
+}
+
+void AddAsset(const char* name, void* asset, const AssetType type) {
+    GameAsset* current = calloc(1, sizeof(GameAsset));
+
+    current->name = _strdup(name);
+    current->asset = asset;
+    current->type = type;
+    current->next = first;
+
+    first = current;
 }
 
 void AddNewAsset(const char* name, const char* path, const AssetType type) {
@@ -33,27 +45,10 @@ void AddNewAsset(const char* name, const char* path, const AssetType type) {
             break;
     }
 
-    GameAsset* current = first;
-
-    if (!current) {
-        first = calloc(1, sizeof(GameAsset));
-        current = first;
-    } else {
-        while (current->next) {
-            current = current->next;
-        }
-
-        current->next = calloc(1, sizeof(GameAsset));
-        current = current->next;
-    }
-
-    current->name = _strdup(name);
-    current->asset = asset;
-    current->type = type;
-    current->next = NULL;
+    AddAsset(name, asset, type);
 }
 
-void* GetAssetFromName(const char* name) {
+void* __getAssetFromName(const char* name) {
     GameAsset* current = first;
 
     while (current != NULL) {
