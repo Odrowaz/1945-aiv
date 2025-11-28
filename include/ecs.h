@@ -28,7 +28,7 @@ typedef void (*systemFn)(world_t *world);
 
 typedef struct system {
   systemFn fn;
-  char *tag;
+  const char *tag;
 } system_t;
 
 #define STR(item) #item
@@ -57,17 +57,17 @@ typedef struct system {
       world, sizeof((const char *[]){__VA_ARGS__}) / sizeof(void *), \
       (const char *[]){__VA_ARGS__})
 
-aiv_vector_t __getComponentsOfType(world_t *world, char *type);
-component_t *__getComponentOfType(world_t *world, char *type);
-component_t *__getComponentOfTypeFromEntity(entity_t *entity, char *type);
+aiv_vector_t __getComponentsOfType(world_t *world, const char *type);
+component_t *__getComponentOfType(world_t *world, const char *type);
+component_t *__getComponentOfTypeFromEntity(entity_t *entity, const char *type);
 
 aiv_vector_t __getEntitiesWithTypes(world_t *world, size_t count,
 
                                     const char *types[]);
 
-void RegisterSystem(systemFn systemFn, char *tag);
+void RegisterSystem(systemFn systemFn, const char *tag);
 
-void RunSystems(size_t worldIndex, char *tag);
+void RunSystems(size_t worldIndex, const char *tag);
 
 size_t CreateWorld();
 void DestroyWorld(size_t worldIndex);
