@@ -7,22 +7,22 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define STR(item) #item
-
-typedef struct entity {
-  size_t id;
-} entity_t;
-
-typedef struct component {
-  size_t entity_id;
-  char *componentType;
-  void *item;
-} component_t;
-
 typedef struct world {
   aiv_vector_t entities;
   aiv_vector_t components;
 } world_t;
+
+typedef struct entity {
+  world_t *world;
+  size_t id;
+  aiv_vector_t components;
+} entity_t;
+
+typedef struct component {
+  entity_t *entity;
+  const char *componentType;
+  void *item;
+} component_t;
 
 typedef void (*systemFn)(world_t *world);
 
@@ -31,44 +31,50 @@ typedef struct system {
   char *tag;
 } system_t;
 
-#define DeclareComponent(type)                                                 \
-  static void __addComponent##type(world_t *world, const type *item,                  \
-                            entity_t *entity) {                                \
-    component_t *component = malloc(sizeof(component_t));                      \
-    component->componentType = #type;                                          \
-    component->entity_id = entity->id;                                         \
-    component->item = malloc(sizeof(type));                                    \
-    memcpy(component->item, item, sizeof(type));                               \
-    aiv_vector_add(&world->components, component);                             \
+#define STR(item) #item
+
+#define DeclareComponent(type)                                                      \
+  static component_t *__addComponentCpy##type(entity_t *entity, const type *item) { \
+    void *item_cpy = malloc(sizeof(type));                                          \
+    memcpy(item_cpy, item, sizeof(type));                                           \
+    return __addComponent(entity, item_cpy, #type);                                 \
   }
 
-#define AddComponent(world, component, type, entity)                           \
-  __addComponent##type(world, component, entity)
+#define AddComponent(entity, component, type) __addComponent(entity, component, #type)
 
-#define GetComponentOfType(world, type) __getComponentOfType(world, #type)
+#define AddComponentCpy(entity, component, type) \
+  __addComponentCpy##type(entity, component)
 
-#define GetComponentsOfType(world, type) __getComponentsOfType(world, #type)
+#define GetComponentFromEntity(entity, type) \
+  __getComponentOfTypeFromEntity(entity, #type)
 
-#define GetEntitiesWithTypes(world, ...)                                       \
-  __getEntitiesWithTypes(                                                      \
-      world, sizeof((const char *[]){__VA_ARGS__}) / sizeof(void *),           \
+#define GetComponent(world, type) __getComponentOfType(world, #type)
+
+#define GetComponents(world, type) __getComponentsOfType(world, #type)
+
+#define GetEntitiesWithTypes(world, ...)                             \
+  __getEntitiesWithTypes(                                            \
+      world, sizeof((const char *[]){__VA_ARGS__}) / sizeof(void *), \
       (const char *[]){__VA_ARGS__})
 
-world_t __getComponentsOfType(world_t *world, char *type);
-
+aiv_vector_t __getComponentsOfType(world_t *world, char *type);
 component_t *__getComponentOfType(world_t *world, char *type);
+component_t *__getComponentOfTypeFromEntity(entity_t *entity, char *type);
 
-world_t __getEntitiesWithTypes(world_t *world, size_t count,
-                               const char *types[]);
+aiv_vector_t __getEntitiesWithTypes(world_t *world, size_t count,
+
+                                    const char *types[]);
 
 void RegisterSystem(systemFn systemFn, char *tag);
 
-void RunSystems(world_t *world, char *tag);
+void RunSystems(size_t worldIndex, char *tag);
 
-world_t CreateWorld();
+size_t CreateWorld();
+void DestroyWorld(size_t worldIndex);
 
-entity_t CreateEntity(world_t *world);
+entity_t *CreateEntity(world_t *world);
+component_t *__addComponent(entity_t *entity, void *item, const char *type);
 
-world_t GetComponentsFromEntity(world_t *world, entity_t *entity);
+void DestroyECS();
 
 #endif
