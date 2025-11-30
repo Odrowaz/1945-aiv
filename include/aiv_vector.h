@@ -1,19 +1,21 @@
 #ifndef AIV_VECTOR_H
 #define AIV_VECTOR_H
 
+#include <corecrt_search.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define guard(index, count)                                                    \
-  if (index >= count) {                                                        \
-    return NULL;                                                               \
+#define guard(index, count) \
+  if (index >= count) {     \
+    return NULL;            \
   }
 
 typedef struct aiv_vector {
-    void** items;
-    size_t count;
-    size_t capacity;
+  void **items;
+  size_t count;
+  size_t capacity;
 } aiv_vector_t;
 
 static aiv_vector_t aiv_vector_new() {
@@ -24,13 +26,19 @@ static aiv_vector_t aiv_vector_new() {
   return vector;
 }
 
+static void aiv_vector_clear(aiv_vector_t *vector) {
+  if (vector != NULL) {
+    vector->count = 0;
+  }
+}
+
 static void aiv_vector_destroy(aiv_vector_t *vector) {
   if (vector != NULL) {
     free(vector->items);
+    vector->items = NULL;
+    vector->count = 0;
+    vector->capacity = 0;
   }
-  vector->items = NULL;
-  vector->count = 0;
-  vector->capacity = 0;
 }
 
 static void __aiv_vector_resize(aiv_vector_t *vector) {
@@ -56,7 +64,6 @@ static void *aiv_vector_at(aiv_vector_t *vector, size_t index) {
   guard(index, vector->count) return vector->items[index];
 }
 
-
 static size_t aiv_vector_size(aiv_vector_t *vector) { return vector->count; }
 
 static bool aiv_vector_is_empty(aiv_vector_t *vector) { return !vector->count; }
@@ -79,6 +86,5 @@ static void aiv_vector_remove_at(aiv_vector_t *vector, size_t index) {
   vector->count--;
   __aiv_vector_resize(vector);
 }
-
 
 #endif

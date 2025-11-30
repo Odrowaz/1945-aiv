@@ -8,6 +8,7 @@
 
 static aiv_vector_t systems = {NULL, 0, 0};
 static aiv_vector_t worlds = {NULL, 0, 0};
+static aiv_vector_t search = {NULL, 0, 0};
 
 void DestroyECS() {
   aiv_vector_destroy(&systems);
@@ -119,7 +120,11 @@ Component_t *__getComponentOfType(World_t *world, const char *type) {
 }
 
 aiv_vector_t __getComponentsOfType(World_t *world, const char *type) {
-  aiv_vector_t search = aiv_vector_new();
+  if (search.capacity == 0) {
+    search = aiv_vector_new();
+  }
+
+  aiv_vector_clear(&search);
 
   for (int i = 0; i < world->components.count; i++) {
     Component_t *c = (Component_t *)world->components.items[i];
@@ -133,7 +138,11 @@ aiv_vector_t __getComponentsOfType(World_t *world, const char *type) {
 
 aiv_vector_t __getEntitiesWithTypes(World_t *world, size_t count,
                                     const char *types[]) {
-  aiv_vector_t result = aiv_vector_new();
+  if (search.capacity == 0) {
+    search = aiv_vector_new();
+  }
+
+  aiv_vector_clear(&search);
 
   for (size_t entityIndex = 0; entityIndex < world->entities.count; entityIndex++) {
     Entity_t *entity = world->entities.items[entityIndex];
@@ -159,11 +168,11 @@ aiv_vector_t __getEntitiesWithTypes(World_t *world, size_t count,
     }
 
     if (allFound) {
-      aiv_vector_add(&result, entity);
+      aiv_vector_add(&search, entity);
     }
   }
 
-  return result;
+  return search;
 }
 
 Entity_t *__getEntityWithTypes(World_t *world, size_t count, const char *types[]) {

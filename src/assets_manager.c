@@ -37,6 +37,7 @@ void AddNewAsset(const char *name, const char *path, const AssetType type) {
     ImageFormat(&imgTmp, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     ImageColorReplace(&imgTmp, KEY_COLOR, (Color){0,0,0, 0});
     Texture2D texture = LoadTextureFromImage(imgTmp);
+    UnloadImage(imgTmp);
     asset = __allocate(texture.id, "Texture", path, &texture, sizeof(Texture2D));
     break;
   case IMAGE:
