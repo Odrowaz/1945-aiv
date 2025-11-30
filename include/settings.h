@@ -7,4 +7,6 @@
 #define TILE_SIZE (32 << 1)
 #define KEY_COLOR (Color){0,67,171, 255}
 
+#define UI_BAR_HEIGHT (76 << 1)
+
 #endif

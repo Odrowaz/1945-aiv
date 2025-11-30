@@ -1,8 +1,9 @@
-
 #include "assets_manager.h"
 #include "ecs.h"
+#include "raylib.h"
 #include "settings.h"
 #include "timers.h"
+#include "types.h"
 #include "utils.h"
 #include <stdbool.h>
 
@@ -15,59 +16,65 @@
 
 #define ISLAND_SIZE (TILE_SIZE << 1)
 
-void InitBg(world_t *world) {
-  entity_t *bg = CreateEntity(world);
+#define ISLAND_NUMBER 5
+#define ISLAND_DISTANCE 150 // WARNING: DISTANCE * (NUMBER-1) CAN'T GO OVER SCREEN_HEIGHT
 
-  AddComponentCpy(bg, ((ScrollingBG){0, GetAssetFromName("GameAtlas", Texture2D)}), ScrollingBG);
-  AddComponentCpy(bg, CreateNewTimer(), Timer);
+const Rectangle ISLAND_TILES[3] = {ISLAND_1, ISLAND_2, ISLAND_3};
 
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 0, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_2, rand_range(0, 1)}), ScrollingIslandBG);
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 150, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_1, rand_range(0, 1)}), ScrollingIslandBG);
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 250, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_3, rand_range(0, 1)}), ScrollingIslandBG);
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 350, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_1, rand_range(0, 1)}), ScrollingIslandBG);
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 420, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_2, rand_range(0, 1)}), ScrollingIslandBG);
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 500, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_3, rand_range(0, 1)}), ScrollingIslandBG);
-  AddComponentCpy(CreateEntity(world), ((ScrollingIslandBG){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), 600, GetAssetFromName("GameAtlas", Texture2D), rand_range(0, 360), ISLAND_3, rand_range(0, 1)}), ScrollingIslandBG);
+void InitBg(World_t *world) {
+  Entity_t *bg = CreateEntity(world);
+
+  AddComponentCpy(bg, ((ScrollingBG_t){0, GetAssetFromName("GameAtlas", Texture2D)}), ScrollingBG_t);
+  AddComponentCpy(bg, CreateNewTimer(), Timer_t);
+
+  for (int i = 0; i < ISLAND_NUMBER; i++) {
+    Entity_t *island = CreateEntity(world);
+    AddComponentCpy(island, ((Transform2D_t){(Vector2){rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2)), i * ISLAND_DISTANCE}, rand_range(0, 360), (Vector2){1, 1}}), Transform2D_t);
+    AddComponentCpy(island, ((ScrollingIslandBG_t){GetAssetFromName("GameAtlas", Texture2D), ISLAND_TILES[rand_range(0, 2)], rand_range(0, 1)}), ScrollingIslandBG_t);
+  }
 }
 
-void UpdateBg(world_t *world) {
-  aiv_vector_t search = GetEntitiesWithTypes(world, STR(ScrollingBG));
+void UpdateBg(World_t *world) {
+  aiv_vector_t search = GetEntitiesWithTypes(world, STR(ScrollingBG_t));
 
   for (int i = 0; i < search.count; i++) {
 
-    entity_t *entity = search.items[i];
-    ScrollingBG *bg = GetComponentFromEntity(entity, ScrollingBG)->item;
+    Entity_t *entity = search.items[i];
+    ScrollingBG_t *bg = GetComponentFromEntity(entity, ScrollingBG_t)->item;
 
     bg->offset_y += 2;
     bg->offset_y %= SCREEN_HEIGHT;
   }
 
-  search = GetEntitiesWithTypes(world, STR(ScrollingIslandBG));
+  search = GetEntitiesWithTypes(world, STR(ScrollingIslandBG_t), STR(Transform2D_t));
 
   for (int i = 0; i < search.count; i++) {
 
-    entity_t *entity = search.items[i];
-    ScrollingIslandBG *island = GetComponentFromEntity(entity, ScrollingIslandBG)->item;
+    Entity_t *entity = search.items[i];
+    ScrollingIslandBG_t *island = GetComponentFromEntity(entity, ScrollingIslandBG_t)->item;
+    Transform2D_t *islandTransform = GetComponentFromEntity(entity, Transform2D_t)->item;
 
-    island->y += 2;
-    if (island->y > (SCREEN_HEIGHT + (ISLAND_SIZE / 2))) {
-      island->y = -(ISLAND_SIZE / 2);
-      island->x = rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2));
+    islandTransform->translation.y += 2;
+    if (islandTransform->translation.y > (SCREEN_HEIGHT + (ISLAND_SIZE * 0.5))) {
+      islandTransform->translation.y = -(ISLAND_SIZE * 0.5);
+      islandTransform->translation.x = rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2));
+      islandTransform->rotation = rand_range(0, 360);
+
       island->enabled = rand_range(0, 1);
-      island->rotation = rand_range(0, 360);
+      island->tile = ISLAND_TILES[rand_range(0, 2)];
     }
   }
 }
 
-void DrawBg(world_t *world) {
-  aiv_vector_t search = GetEntitiesWithTypes(world, STR(ScrollingBG), STR(Timer));
+void DrawBg(World_t *world) {
+  aiv_vector_t search = GetEntitiesWithTypes(world, STR(ScrollingBG_t), STR(Timer_t));
 
   for (int i = 0; i < search.count; i++) {
 
-    entity_t *entity = search.items[i];
+    Entity_t *entity = search.items[i];
 
-    Timer *timer = GetComponentFromEntity(entity, Timer)->item;
-    ScrollingBG *bg = GetComponentFromEntity(entity, ScrollingBG)->item;
+    Timer_t *timer = GetComponentFromEntity(entity, Timer_t)->item;
+    ScrollingBG_t *bg = GetComponentFromEntity(entity, ScrollingBG_t)->item;
 
     int frameIndex = GetAnimationFrame(timer, 2, 1.0 / 1);
     for (int y = 0; y < SCREEN_HEIGHT + TILE_SIZE; y += TILE_SIZE) {
@@ -86,19 +93,20 @@ void DrawBg(world_t *world) {
   }
 }
 
-void DrawIslandBg(world_t *world) {
-  aiv_vector_t search = GetEntitiesWithTypes(world, STR(ScrollingIslandBG));
+void DrawIslandBg(World_t *world) {
+  aiv_vector_t search = GetEntitiesWithTypes(world, STR(ScrollingIslandBG_t), STR(Transform2D_t));
 
   for (int i = 0; i < search.count; i++) {
 
-    entity_t *entity = search.items[i];
+    Entity_t *entity = search.items[i];
 
-    ScrollingIslandBG *bg = GetComponentFromEntity(entity, ScrollingIslandBG)->item;
+    ScrollingIslandBG_t *island = GetComponentFromEntity(entity, ScrollingIslandBG_t)->item;
+    Transform2D_t *islandTransform = GetComponentFromEntity(entity, Transform2D_t)->item;
 
-    if (bg->enabled) {
-      DrawTexturePro(*bg->atlas, bg->tile,
-                     (Rectangle){bg->x, bg->y, ISLAND_SIZE, ISLAND_SIZE},
-                     (Vector2){ISLAND_SIZE * 0.5, ISLAND_SIZE * 0.5}, bg->rotation, WHITE);
+    if (island->enabled) {
+      DrawTexturePro(*island->atlas, island->tile,
+                     (Rectangle){islandTransform->translation.x, islandTransform->translation.y, ISLAND_SIZE * islandTransform->scale.x, ISLAND_SIZE * islandTransform->scale.y},
+                     (Vector2){ISLAND_SIZE * 0.5, ISLAND_SIZE * 0.5}, islandTransform->rotation, WHITE);
     }
   }
 }

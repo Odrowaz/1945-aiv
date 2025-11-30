@@ -7,37 +7,37 @@
 #include <string.h>
 #include <sys/stat.h>
 
-typedef struct world {
+typedef struct World {
   aiv_vector_t entities;
   aiv_vector_t components;
-} world_t;
+} World_t;
 
-typedef struct entity {
-  world_t *world;
+typedef struct Entity {
+  World_t *world;
   size_t id;
   aiv_vector_t components;
-} entity_t;
+} Entity_t;
 
-typedef struct component {
-  entity_t *entity;
+typedef struct Component {
+  Entity_t *entity;
   const char *componentType;
   void *item;
-} component_t;
+} Component_t;
 
-typedef void (*systemFn)(world_t *world);
+typedef void (*SystemFn)(World_t *world);
 
-typedef struct system {
-  systemFn fn;
+typedef struct System {
+  SystemFn fn;
   const char *tag;
-} system_t;
+} System_t;
 
 #define STR(item) #item
 
-#define DeclareComponent(type)                                                      \
-  static component_t *__addComponentCpy##type(entity_t *entity, const type item) { \
-    void *item_cpy = malloc(sizeof(type));                                          \
-    memcpy(item_cpy, &item, sizeof(type));                                           \
-    return __addComponent(entity, item_cpy, #type);                                 \
+#define DeclareComponent(type)                                                     \
+  static Component_t *__addComponentCpy##type(Entity_t *entity, const type item) { \
+    void *item_cpy = malloc(sizeof(type));                                         \
+    memcpy(item_cpy, &item, sizeof(type));                                         \
+    return __addComponent(entity, item_cpy, #type);                                \
   }
 
 #define AddComponent(entity, component, type) __addComponent(entity, component, #type)
@@ -57,23 +57,27 @@ typedef struct system {
       world, sizeof((const char *[]){__VA_ARGS__}) / sizeof(void *), \
       (const char *[]){__VA_ARGS__})
 
-aiv_vector_t __getComponentsOfType(world_t *world, const char *type);
-component_t *__getComponentOfType(world_t *world, const char *type);
-component_t *__getComponentOfTypeFromEntity(entity_t *entity, const char *type);
+#define GetEntityWithTypes(world, ...)                               \
+  __getEntityWithTypes(                                              \
+      world, sizeof((const char *[]){__VA_ARGS__}) / sizeof(void *), \
+      (const char *[]){__VA_ARGS__})
 
-aiv_vector_t __getEntitiesWithTypes(world_t *world, size_t count,
+aiv_vector_t __getComponentsOfType(World_t *world, const char *type);
+Component_t *__getComponentOfType(World_t *world, const char *type);
+Component_t *__getComponentOfTypeFromEntity(Entity_t *entity, const char *type);
 
-                                    const char *types[]);
+aiv_vector_t __getEntitiesWithTypes(World_t *world, size_t count, const char *types[]);
+Entity_t *__getEntityWithTypes(World_t *world, size_t count, const char *types[]);
 
-void RegisterSystem(systemFn systemFn, const char *tag);
+void RegisterSystem(SystemFn systemFn, const char *tag);
 
 void RunSystems(size_t worldIndex, const char *tag);
 
 size_t CreateWorld();
 void DestroyWorld(size_t worldIndex);
 
-entity_t *CreateEntity(world_t *world);
-component_t *__addComponent(entity_t *entity, void *item, const char *type);
+Entity_t *CreateEntity(World_t *world);
+Component_t *__addComponent(Entity_t *entity, void *item, const char *type);
 
 void DestroyECS();
 

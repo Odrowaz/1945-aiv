@@ -1,12 +1,12 @@
 #include "ecs.h"
 
 #include "aiv_vector.h"
+#include <corecrt_search.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <wchar.h>
 
 static aiv_vector_t systems = {NULL, 0, 0};
-
 static aiv_vector_t worlds = {NULL, 0, 0};
 
 void DestroyECS() {
@@ -14,12 +14,12 @@ void DestroyECS() {
   aiv_vector_destroy(&worlds);
 }
 
-void RegisterSystem(systemFn systemFn, const char *tag) {
+void RegisterSystem(SystemFn systemFn, const char *tag) {
   if (systems.capacity == 0) {
     systems = aiv_vector_new();
   }
 
-  system_t *system = malloc(sizeof(system_t));
+  System_t *system = malloc(sizeof(System_t));
   system->fn = systemFn;
   system->tag = tag;
 
@@ -27,10 +27,10 @@ void RegisterSystem(systemFn systemFn, const char *tag) {
 }
 
 void RunSystems(size_t worldIndex, const char *tag) {
-  world_t *world = worlds.items[worldIndex];
+  World_t *world = worlds.items[worldIndex];
   for (int i = 0; i < systems.count; i++) {
-    if (strcmp(((system_t *)systems.items[i])->tag, tag) == 0) {
-      ((system_t *)systems.items[i])->fn(world);
+    if (strcmp(((System_t *)systems.items[i])->tag, tag) == 0) {
+      ((System_t *)systems.items[i])->fn(world);
     }
   }
 }
@@ -40,7 +40,7 @@ size_t CreateWorld() {
     worlds = aiv_vector_new();
   }
 
-  world_t *world = malloc(sizeof(world_t));
+  World_t *world = malloc(sizeof(World_t));
   world->components = aiv_vector_new();
   world->entities = aiv_vector_new();
 
@@ -50,18 +50,20 @@ size_t CreateWorld() {
 }
 
 void DestroyWorld(size_t worldIndex) {
-  world_t *world = worlds.items[worldIndex];
+  World_t *world = worlds.items[worldIndex];
 
   for (int i = 0; i < world->entities.count; i++) {
-    entity_t *entity = world->entities.items[i];
+    Entity_t *entity = world->entities.items[i];
     aiv_vector_destroy(&entity->components);
     free(entity);
   }
   aiv_vector_destroy(&world->entities);
 
   for (int i = 0; i < world->components.count; i++) {
-    component_t *component = world->components.items[i];
-    free(component->item);
+    Component_t *component = world->components.items[i];
+    if (component->item != NULL) {
+      free(component->item);
+    }
     free(component);
   }
   aiv_vector_destroy(&world->components);
@@ -69,10 +71,10 @@ void DestroyWorld(size_t worldIndex) {
   free(world);
 }
 
-entity_t *CreateEntity(world_t *world) {
+Entity_t *CreateEntity(World_t *world) {
   static int entity_index = 0;
 
-  entity_t *new_entity = malloc(sizeof(entity_t));
+  Entity_t *new_entity = malloc(sizeof(Entity_t));
 
   new_entity->id = ++entity_index;
   new_entity->world = world;
@@ -83,8 +85,8 @@ entity_t *CreateEntity(world_t *world) {
   return new_entity;
 }
 
-component_t *__addComponent(entity_t *entity, void *item, const char *type) {
-  component_t *component = malloc(sizeof(component_t));
+Component_t *__addComponent(Entity_t *entity, void *item, const char *type) {
+  Component_t *component = malloc(sizeof(Component_t));
   component->componentType = type;
   component->entity = entity;
   component->item = item;
@@ -94,9 +96,9 @@ component_t *__addComponent(entity_t *entity, void *item, const char *type) {
   return component;
 }
 
-component_t *__getComponentOfTypeFromEntity(entity_t *entity, const char *type) {
+Component_t *__getComponentOfTypeFromEntity(Entity_t *entity, const char *type) {
   for (int i = 0; i < entity->components.count; i++) {
-    component_t *c = (component_t *)entity->components.items[i];
+    Component_t *c = (Component_t *)entity->components.items[i];
 
     if (strcmp(c->componentType, type) == 0) {
       return c;
@@ -105,9 +107,9 @@ component_t *__getComponentOfTypeFromEntity(entity_t *entity, const char *type) 
   return NULL;
 }
 
-component_t *__getComponentOfType(world_t *world, const char *type) {
+Component_t *__getComponentOfType(World_t *world, const char *type) {
   for (int i = 0; i < world->components.count; i++) {
-    component_t *c = (component_t *)world->components.items[i];
+    Component_t *c = (Component_t *)world->components.items[i];
 
     if (strcmp(c->componentType, type) == 0) {
       return c;
@@ -116,11 +118,11 @@ component_t *__getComponentOfType(world_t *world, const char *type) {
   return NULL;
 }
 
-aiv_vector_t __getComponentsOfType(world_t *world, const char *type) {
+aiv_vector_t __getComponentsOfType(World_t *world, const char *type) {
   aiv_vector_t search = aiv_vector_new();
 
   for (int i = 0; i < world->components.count; i++) {
-    component_t *c = (component_t *)world->components.items[i];
+    Component_t *c = (Component_t *)world->components.items[i];
 
     if (strcmp(c->componentType, type) == 0) {
       aiv_vector_add(&search, c);
@@ -129,17 +131,17 @@ aiv_vector_t __getComponentsOfType(world_t *world, const char *type) {
   return search;
 }
 
-aiv_vector_t __getEntitiesWithTypes(world_t *world, size_t count,
+aiv_vector_t __getEntitiesWithTypes(World_t *world, size_t count,
                                     const char *types[]) {
   aiv_vector_t result = aiv_vector_new();
 
   for (size_t entityIndex = 0; entityIndex < world->entities.count; entityIndex++) {
-    entity_t *entity = world->entities.items[entityIndex];
+    Entity_t *entity = world->entities.items[entityIndex];
     bool foundType[count];
     memset(foundType, 0, sizeof(foundType));
 
     for (size_t i = 0; i < entity->components.count; i++) {
-      component_t *c = entity->components.items[i];
+      Component_t *c = entity->components.items[i];
       for (size_t t = 0; t < count; t++) {
         if (!foundType[t] && strcmp(c->componentType, types[t]) == 0) {
           foundType[t] = true;
@@ -162,4 +164,36 @@ aiv_vector_t __getEntitiesWithTypes(world_t *world, size_t count,
   }
 
   return result;
+}
+
+Entity_t *__getEntityWithTypes(World_t *world, size_t count, const char *types[]) {
+  for (size_t entityIndex = 0; entityIndex < world->entities.count; entityIndex++) {
+    Entity_t *entity = world->entities.items[entityIndex];
+    bool foundType[count];
+    memset(foundType, 0, sizeof(foundType));
+
+    for (size_t i = 0; i < entity->components.count; i++) {
+      Component_t *c = entity->components.items[i];
+      for (size_t t = 0; t < count; t++) {
+        if (!foundType[t] && strcmp(c->componentType, types[t]) == 0) {
+          foundType[t] = true;
+          break;
+        }
+      }
+    }
+
+    bool allFound = true;
+    for (size_t t = 0; t < count; t++) {
+      if (!foundType[t]) {
+        allFound = false;
+        break;
+      }
+    }
+
+    if (allFound) {
+      return entity;
+    }
+  }
+
+  return NULL;
 }

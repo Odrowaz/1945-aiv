@@ -1,12 +1,14 @@
 #include "assets_manager.h"
 #include "bg.h"
 #include "ecs.h"
+#include "player.h"
 #include "raylib.h"
+#include "settings.h"
 #include "types.h"
+#include "ui.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
-#include "settings.h"
 #include <time.h>
 
 void LoadAllAssets() {
@@ -14,11 +16,9 @@ void LoadAllAssets() {
   ChangeDirectory(app_dir);
   ChangeDirectory("..");
 
-  Image atlas = LoadImage("assets/1945_atlas.bmp");
-
   AddNewAsset("GameAtlas", "assets/1945_atlas.bmp", TEXTURE);
-
   AddNewAsset("GameIcon", "assets/ui/life.png", IMAGE);
+  AddNewAsset("UIBottomBar", "assets/ui/bottom.png", TEXTURE);
 }
 
 int main(void) {
@@ -28,17 +28,32 @@ int main(void) {
 
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Loading...");
   SetTargetFPS(TARGET_FRAMERATE);
+
   LoadAllAssets();
 
   SetWindowIcon(*GetAssetFromName("GameIcon", Image));
   InitAudioDevice();
 
+  /*ECS*/
   size_t worldIndex = CreateWorld();
 
+  //////////////////////////////////
+  // Init Systems
   RegisterSystem(InitBg, "INIT");
+  RegisterSystem(InitPlayer, "INIT");
+
+  // Update Systems
   RegisterSystem(UpdateBg, "UPDATE");
+  RegisterSystem(UpdatePlayer, "UPDATE");
+
+  // Draw Systems
   RegisterSystem(DrawBg, "DRAW");
   RegisterSystem(DrawIslandBg, "DRAW");
+  RegisterSystem(DrawPlayer, "DRAW");
+
+  // UI Systems
+  RegisterSystem(DrawUi, "UI");
+  //////////////////////////////////
 
   RunSystems(worldIndex, "INIT");
 
@@ -54,6 +69,7 @@ int main(void) {
     {
       ClearBackground(KEY_COLOR);
       RunSystems(worldIndex, "DRAW");
+      RunSystems(worldIndex, "UI");
     }
     EndDrawing();
   }

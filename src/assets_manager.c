@@ -5,7 +5,7 @@
 
 #include "raylib.h"
 
-static GameAsset *first = NULL;
+static GameAsset_t *first = NULL;
 
 static void *__allocate(const bool result, const char *type, const char *path, const void *src, int size) {
   if (!result) {
@@ -19,7 +19,7 @@ static void *__allocate(const bool result, const char *type, const char *path, c
 }
 
 void AddAsset(const char *name, void *asset, const AssetType type) {
-  GameAsset *current = calloc(1, sizeof(GameAsset));
+  GameAsset_t *current = calloc(1, sizeof(GameAsset_t));
 
   current->name = _strdup(name);
   current->asset = asset;
@@ -53,7 +53,7 @@ void AddNewAsset(const char *name, const char *path, const AssetType type) {
 }
 
 void *__getAssetFromName(const char *name) {
-  GameAsset *current = first;
+  GameAsset_t *current = first;
 
   while (current != NULL) {
     if (strcmp(name, current->name) == 0) {
@@ -67,10 +67,10 @@ void *__getAssetFromName(const char *name) {
 }
 
 void FreeAssets() {
-  GameAsset *current = first;
+  GameAsset_t *current = first;
 
   while (current != NULL) {
-    GameAsset *next = current->next;
+    GameAsset_t *next = current->next;
 
     // Raylib
     switch (current->type) {

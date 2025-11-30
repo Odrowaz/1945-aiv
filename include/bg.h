@@ -3,9 +3,9 @@
 
 #include "ecs.h"
 
-void InitBg(world_t *world);
-void UpdateBg(world_t *world);
-void DrawBg(world_t *world);
-void DrawIslandBg(world_t *world);
+void InitBg(World_t *world);
+void UpdateBg(World_t *world);
+void DrawBg(World_t *world);
+void DrawIslandBg(World_t *world);
 
 #endif
