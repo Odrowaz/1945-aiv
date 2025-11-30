@@ -34,7 +34,9 @@ static void aiv_vector_clear(aiv_vector_t *vector) {
 
 static void aiv_vector_destroy(aiv_vector_t *vector) {
   if (vector != NULL) {
-    free(vector->items);
+    if (vector->items != NULL) {
+      free(vector->items);
+    }
     vector->items = NULL;
     vector->count = 0;
     vector->capacity = 0;

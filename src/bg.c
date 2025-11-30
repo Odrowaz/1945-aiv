@@ -42,8 +42,10 @@ void UpdateBg(World_t *world) {
     Entity_t *entity = search.items[i];
     ScrollingBG_t *bg = GetComponentFromEntity(entity, ScrollingBG_t)->item;
 
-    bg->offset_y += 2;
-    bg->offset_y %= SCREEN_HEIGHT;
+    bg->offset_y += (2 * DELTA_TIME);
+    if (bg->offset_y > SCREEN_HEIGHT) {
+      bg->offset_y = 0;
+    }
   }
 
   search = GetEntitiesWithTypes(world, STR(ScrollingIslandBG_t), STR(Transform2D_t));
@@ -54,7 +56,7 @@ void UpdateBg(World_t *world) {
     ScrollingIslandBG_t *island = GetComponentFromEntity(entity, ScrollingIslandBG_t)->item;
     Transform2D_t *islandTransform = GetComponentFromEntity(entity, Transform2D_t)->item;
 
-    islandTransform->translation.y += 2;
+    islandTransform->translation.y += (2 * DELTA_TIME);
     if (islandTransform->translation.y > (SCREEN_HEIGHT + (ISLAND_SIZE * 0.5))) {
       islandTransform->translation.y = -(ISLAND_SIZE * 0.5);
       islandTransform->translation.x = rand_range((ISLAND_SIZE / 2), SCREEN_WIDTH - (ISLAND_SIZE / 2));

@@ -2,6 +2,8 @@
 #define SETTINGS_H
 
 #define TARGET_FRAMERATE 60
+#define DELTA_MULTIPLIER 100
+#define DELTA_TIME (GetFrameTime() * DELTA_MULTIPLIER)
 #define SCREEN_WIDTH (640 << 1)
 #define SCREEN_HEIGHT (480 << 1)
 #define TILE_SIZE (32 << 1)

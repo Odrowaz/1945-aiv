@@ -13,6 +13,7 @@ static aiv_vector_t search = {NULL, 0, 0};
 void DestroyECS() {
   aiv_vector_destroy(&systems);
   aiv_vector_destroy(&worlds);
+  aiv_vector_destroy(&search);
 }
 
 void RegisterSystem(SystemFn systemFn, const char *tag) {

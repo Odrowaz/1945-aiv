@@ -40,8 +40,8 @@ void UpdatePlayer(World_t *world) {
 
   direction = Vector2Normalize(direction);
 
-  transform->translation.x += 5 * direction.x;
-  transform->translation.y += 10 * direction.y;
+  transform->translation.x += (5 * DELTA_TIME) * direction.x;
+  transform->translation.y += (10 * DELTA_TIME) * direction.y;
 
   if (transform->translation.x + PLAYER_HALFSIZE > SCREEN_WIDTH) {
     transform->translation.x = SCREEN_WIDTH - PLAYER_HALFSIZE;

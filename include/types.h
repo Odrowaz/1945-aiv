@@ -3,6 +3,7 @@
 
 #include "ecs.h"
 #include "raylib.h"
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -21,7 +22,7 @@ typedef struct GameAsset {
 } GameAsset_t;
 
 typedef struct ScrollingBG {
-  int offset_y;
+  float offset_y;
   Texture2D *atlas;
 } ScrollingBG_t;
 DeclareComponent(ScrollingBG_t);
