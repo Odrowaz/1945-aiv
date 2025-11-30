@@ -3,7 +3,8 @@
 
 #include "ecs.h"
 
-void initBg(world_t *world);
+void InitBg(world_t *world);
+void UpdateBg(world_t *world);
 void DrawBg(world_t *world);
 void DrawIslandBg(world_t *world);
 

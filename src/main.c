@@ -1,13 +1,13 @@
 #include "assets_manager.h"
+#include "bg.h"
 #include "ecs.h"
 #include "raylib.h"
 #include "types.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
-#include "bg.h"
-
 #include "settings.h"
+#include <time.h>
 
 void LoadAllAssets() {
   const char *app_dir = GetApplicationDirectory();
@@ -22,6 +22,7 @@ void LoadAllAssets() {
 }
 
 int main(void) {
+  srand(time(NULL));
 
   char title[100];
 
@@ -34,7 +35,8 @@ int main(void) {
 
   size_t worldIndex = CreateWorld();
 
-  RegisterSystem(initBg, "INIT");
+  RegisterSystem(InitBg, "INIT");
+  RegisterSystem(UpdateBg, "UPDATE");
   RegisterSystem(DrawBg, "DRAW");
   RegisterSystem(DrawIslandBg, "DRAW");
 
@@ -46,18 +48,20 @@ int main(void) {
     sprintf(title, "1945 (Delta: %.4f - FPS: %d)", delta_time, fps);
     SetWindowTitle(title);
 
+    RunSystems(worldIndex, "UPDATE");
+
     BeginDrawing();
     {
-      ClearBackground(BLANK);
+      ClearBackground(KEY_COLOR);
       RunSystems(worldIndex, "DRAW");
     }
     EndDrawing();
   }
 
-  DestroyWorld(worldIndex);
   FreeAssets();
-  CloseWindow();
+  DestroyWorld(worldIndex);
   DestroyECS();
+  CloseWindow();
 
   return 0;
 }

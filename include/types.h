@@ -4,7 +4,6 @@
 #include "raylib.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include <string.h>
 #include "ecs.h"
 
 typedef enum AssetType {
@@ -22,10 +21,20 @@ typedef struct GameAsset {
 } GameAsset;
 
 typedef struct ScrollingBG {
-    size_t offset_y;
+    int offset_y;
     Texture2D* atlas;
 } ScrollingBG;
 DeclareComponent(ScrollingBG);
+
+typedef struct ScrollingIslandBG {
+    int x;
+    int y;
+    Texture2D* atlas;
+    float rotation;
+    Rectangle tile;
+    bool enabled;
+} ScrollingIslandBG;
+DeclareComponent(ScrollingIslandBG);
 
 typedef struct Timer {
     double startingTime;

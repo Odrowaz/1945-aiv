@@ -5,5 +5,6 @@
 #define SCREEN_WIDTH (640 << 1)
 #define SCREEN_HEIGHT (480 << 1)
 #define TILE_SIZE (32 << 1)
+#define KEY_COLOR (Color){0,67,171, 255}
 
 #endif

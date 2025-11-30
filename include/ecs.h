@@ -34,9 +34,9 @@ typedef struct system {
 #define STR(item) #item
 
 #define DeclareComponent(type)                                                      \
-  static component_t *__addComponentCpy##type(entity_t *entity, const type *item) { \
+  static component_t *__addComponentCpy##type(entity_t *entity, const type item) { \
     void *item_cpy = malloc(sizeof(type));                                          \
-    memcpy(item_cpy, item, sizeof(type));                                           \
+    memcpy(item_cpy, &item, sizeof(type));                                           \
     return __addComponent(entity, item_cpy, #type);                                 \
   }
 
