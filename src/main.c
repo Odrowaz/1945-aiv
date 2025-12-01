@@ -14,7 +14,6 @@
 void LoadAllAssets() {
   const char *app_dir = GetApplicationDirectory();
   ChangeDirectory(app_dir);
-  ChangeDirectory("..");
 
   AddNewAsset("GameAtlas", "assets/1945_atlas.bmp", TEXTURE);
   AddNewAsset("GameIcon", "assets/ui/life.png", IMAGE);
