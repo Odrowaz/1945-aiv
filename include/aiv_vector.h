@@ -4,6 +4,7 @@
 #include <corecrt_search.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -13,16 +14,17 @@
   }
 
 typedef struct aiv_vector {
-  void **items;
+  void *items;
   size_t count;
+  size_t item_size;
   size_t capacity;
 } aiv_vector_t;
 
-static aiv_vector_t aiv_vector_new() {
+static aiv_vector_t aiv_vector_new(size_t item_size) {
   aiv_vector_t vector;
   vector.count = 0;
   vector.capacity = 10;
-  vector.items = malloc(sizeof(void *) * vector.capacity);
+  vector.items = malloc(item_size * vector.capacity);
   return vector;
 }
 
@@ -52,18 +54,19 @@ static void __aiv_vector_resize(aiv_vector_t *vector) {
     return;
   }
 
-  vector->items = realloc(vector->items, sizeof(void *) * vector->capacity);
+  vector->items = realloc(vector->items, vector->item_size * vector->capacity);
 }
 
 static void aiv_vector_add(aiv_vector_t *vector, void *item) {
   __aiv_vector_resize(vector);
   size_t new_index = vector->count;
   vector->count++;
-  vector->items[new_index] = item;
+  memcpy(vector->items + (new_index * vector->item_size), item, vector->item_size);
+  // vector->items[new_index] = item;
 }
 
 static void *aiv_vector_at(aiv_vector_t *vector, size_t index) {
-  guard(index, vector->count) return vector->items[index];
+  guard(index, vector->count) return vector->items + (index * vector->item_size);
 }
 
 static size_t aiv_vector_size(aiv_vector_t *vector) { return vector->count; }
@@ -73,11 +76,11 @@ static bool aiv_vector_is_empty(aiv_vector_t *vector) { return !vector->count; }
 static void aiv_vector_insert_at(aiv_vector_t *vector, size_t index, void *item) {
   __aiv_vector_resize(vector);
 
-  memmove(vector->items + index + 1, vector->items + index,
-          (vector->count - index) * sizeof(void *));
+  memmove(vector->items + ((index + 1) * vector->item_size), vector->items + (index * vector->item_size),
+          (vector->count - index) * vector->item_size);
 
   vector->count++;
-  vector->items[index] = item;
+  memcpy(vector->items + (index * vector->item_size), item, vector->item_size);
 }
 
 static void aiv_vector_remove_at(aiv_vector_t *vector, size_t index) {

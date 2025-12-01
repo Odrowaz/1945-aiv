@@ -40,16 +40,16 @@ int main(void) {
   //////////////////////////////////
   // Init Systems
   RegisterSystem(InitBg, "INIT");
-  RegisterSystem(InitPlayer, "INIT");
+  // RegisterSystem(InitPlayer, "INIT");
 
-  // Update Systems
-  RegisterSystem(UpdateBg, "UPDATE");
-  RegisterSystem(UpdatePlayer, "UPDATE");
+  // // Update Systems
+  // RegisterSystem(UpdateBg, "UPDATE");
+  // RegisterSystem(UpdatePlayer, "UPDATE");
 
   // Draw Systems
   RegisterSystem(DrawBg, "DRAW");
-  RegisterSystem(DrawIslandBg, "DRAW");
-  RegisterSystem(DrawPlayer, "DRAW");
+  // RegisterSystem(DrawIslandBg, "DRAW");
+  // RegisterSystem(DrawPlayer, "DRAW");
 
   // UI Systems
   RegisterSystem(DrawUi, "UI");

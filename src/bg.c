@@ -39,7 +39,7 @@ void UpdateBg(World_t *world) {
 
   for (int i = 0; i < search.count; i++) {
 
-    Entity_t *entity = search.items[i];
+    Entity_t *entity = aiv_vector_at(&search, i);
     ScrollingBG_t *bg = GetComponentFromEntity(entity, ScrollingBG_t)->item;
 
     bg->offset_y += (2 * DELTA_TIME);
@@ -52,7 +52,7 @@ void UpdateBg(World_t *world) {
 
   for (int i = 0; i < search.count; i++) {
 
-    Entity_t *entity = search.items[i];
+    Entity_t *entity = aiv_vector_at(&search, i);
     ScrollingIslandBG_t *island = GetComponentFromEntity(entity, ScrollingIslandBG_t)->item;
     Transform2D_t *islandTransform = GetComponentFromEntity(entity, Transform2D_t)->item;
 
@@ -73,7 +73,7 @@ void DrawBg(World_t *world) {
 
   for (int i = 0; i < search.count; i++) {
 
-    Entity_t *entity = search.items[i];
+    Entity_t *entity = aiv_vector_at(&search, i);
 
     Timer_t *timer = GetComponentFromEntity(entity, Timer_t)->item;
     ScrollingBG_t *bg = GetComponentFromEntity(entity, ScrollingBG_t)->item;
@@ -100,7 +100,7 @@ void DrawIslandBg(World_t *world) {
 
   for (int i = 0; i < search.count; i++) {
 
-    Entity_t *entity = search.items[i];
+    Entity_t *entity = aiv_vector_at(&search, i);
 
     ScrollingIslandBG_t *island = GetComponentFromEntity(entity, ScrollingIslandBG_t)->item;
     Transform2D_t *islandTransform = GetComponentFromEntity(entity, Transform2D_t)->item;
