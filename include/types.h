@@ -27,18 +27,38 @@ typedef struct ScrollingBG {
 } ScrollingBG_t;
 DeclareComponent(ScrollingBG_t);
 
-typedef struct ScrollingIslandBG {
-  Texture2D *atlas;
-  Rectangle tile;
-  bool enabled;
-} ScrollingIslandBG_t;
-DeclareComponent(ScrollingIslandBG_t);
-
 typedef struct Timer {
   double startingTime;
   bool started;
 } Timer_t;
 DeclareComponent(Timer_t);
+
+// typedef struct Bullet {
+// } Bullet_t;
+// DeclareComponent(Bullet_t);
+
+typedef struct Collider {
+  Rectangle size;
+  bool hit;
+  unsigned int layermask;
+  unsigned int collisionmask;
+} Collider_t;
+DeclareComponent(Collider_t);
+
+typedef struct Animation {
+  Timer_t timer;
+  float frameDuration;
+  int frames;
+  const Rectangle *animation;
+} Animation_t;
+DeclareComponent(Animation_t);
+
+typedef struct Sprite {
+  Rectangle tile;
+  Texture2D *atlas;
+  int size;
+} Sprite_t;
+DeclareComponent(Sprite_t);
 
 typedef struct Transform2D {
   Vector2 translation;
@@ -46,5 +66,7 @@ typedef struct Transform2D {
   Vector2 scale;
 } Transform2D_t;
 DeclareComponent(Transform2D_t);
+
+DeclareComponent(Vector2)
 
 #endif // TYPES_H

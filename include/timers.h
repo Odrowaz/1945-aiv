@@ -4,6 +4,7 @@
 #include "types.h"
 
 Timer_t CreateNewTimer();
+float CycleTimerTime(Timer_t *timer);
 float GetTimerTime(const Timer_t *timer);
 void StopTimer(Timer_t *timer);
 void StartTimer(Timer_t *timer);

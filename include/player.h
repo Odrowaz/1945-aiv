@@ -5,6 +5,5 @@
 
 void InitPlayer(World_t *world);
 void UpdatePlayer(World_t *world);
-void DrawPlayer(World_t *world);
 
 #endif

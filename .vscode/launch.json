@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch",
-            "program": "${workspaceFolder}/build/Debug/1945_App.exe",
+            "program": "${workspaceFolder}/build/Debug/1945_Game.exe",
             "args": [],
             "cwd": "${workspaceFolder}"
         }

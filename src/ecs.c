@@ -2,6 +2,7 @@
 
 #include "aiv_vector.h"
 #include <corecrt_search.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -81,6 +82,7 @@ Entity_t *CreateEntity(World_t *world) {
   new_entity->id = ++entity_index;
   new_entity->world = world;
   new_entity->components = aiv_vector_new();
+  new_entity->enabled = true;
 
   aiv_vector_add(&world->entities, new_entity);
 

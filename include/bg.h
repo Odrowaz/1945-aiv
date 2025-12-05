@@ -6,6 +6,5 @@
 void InitBg(World_t *world);
 void UpdateBg(World_t *world);
 void DrawBg(World_t *world);
-void DrawIslandBg(World_t *world);
 
 #endif

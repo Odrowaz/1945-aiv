@@ -2,6 +2,7 @@
 #define ECS_H
 
 #include "aiv_vector.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +16,7 @@ typedef struct World {
 typedef struct Entity {
   World_t *world;
   size_t id;
+  bool enabled;
   aiv_vector_t components;
 } Entity_t;
 
@@ -33,14 +35,22 @@ typedef struct System {
 
 #define STR(item) #item
 
-#define DeclareComponent(type)                                                     \
-  static Component_t *__addComponentCpy##type(Entity_t *entity, const type item) { \
-    void *item_cpy = malloc(sizeof(type));                                         \
-    memcpy(item_cpy, &item, sizeof(type));                                         \
-    return __addComponent(entity, item_cpy, #type);                                \
+#define DeclareComponent(type)                                                                             \
+  static Component_t *__addComponentCpy##type(Entity_t *entity, const type item) {                         \
+    void *item_cpy = malloc(sizeof(type));                                                                 \
+    memcpy(item_cpy, &item, sizeof(type));                                                                 \
+    return __addComponent(entity, item_cpy, #type);                                                        \
+  }                                                                                                        \
+  static Component_t *__addComponentCpyTag##type(Entity_t *entity, const type item, const char *typeString) { \
+    void *item_cpy = malloc(sizeof(type));                                                                 \
+    memcpy(item_cpy, &item, sizeof(type));                                                                 \
+    return __addComponent(entity, item_cpy, typeString);                                                        \
   }
 
 #define AddComponent(entity, component, type) __addComponent(entity, component, #type)
+
+#define AddComponentCpyTag(entity, component, type, tag) \
+  __addComponentCpyTag##type(entity, component, #tag)
 
 #define AddComponentCpy(entity, component, type) \
   __addComponentCpy##type(entity, component)
@@ -80,5 +90,8 @@ Entity_t *CreateEntity(World_t *world);
 Component_t *__addComponent(Entity_t *entity, void *item, const char *type);
 
 void DestroyECS();
+
+DeclareComponent(int)
+DeclareComponent(bool)
 
 #endif
