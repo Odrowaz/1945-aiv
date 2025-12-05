@@ -1,3 +1,2 @@
--Iinclude
--Llib
--lraylibdll
+-Igame/include
+-Iecs/include
